@@ -1,0 +1,9 @@
+[master_nodes]
+node4 ansible_ssh_user=vagrant
+
+[data_nodes]
+node5 ansible_ssh_user=vagrant
+
+[nodes]
+node4
+node5
