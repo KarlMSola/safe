@@ -1,2 +1,4 @@
 # safe
-Stuff for safe keeping
+Random public stuff synced for safe keeping
+
+2016.11.19
