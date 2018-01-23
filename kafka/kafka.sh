@@ -10,7 +10,7 @@
 ### END INIT INFO
 
 KNAME="kafka"
-KCMD="/export/kafka/current/bin/kafka-server-start.sh /export/kafka/current/config/server.properties"
+KCMD="/opt/kafka/current/bin/kafka-server-start.sh /opt/kafka/current/config/server.properties"
 KPIDFILE="/var/run/$KNAME.pid"
 KLOGFILE="/var/log/$KNAME.log"
 

@@ -1,39 +1,55 @@
 #!/bin/sh
 #
-# 2017.11.01 kamaso: v.1
-# Call this script to set up kafka node
+# 2018.01.23 kamaso: v.2
+# Call this script to set up kafka node on a Centos7 box
 #
 
 # The three forst nodes are both zookeeper and Kafka broker nodes
-zk1=st-lcsi01
-zk2=st-lcsi02
-zk3=st-lcsi03
+zk1=ai-linapp1093.statoil.no
+zk2=ai-linapp1094.statoil.no
+zk3=ai-linapp1095.statoil.no
 kb1=$zk1
 kb2=$zk2
 kb3=$zk3
-kb4=st-lcsi04
-dataDir="/export/kafka"
-
-#if ! [ $(rpm -q elasticsearch) ]; then
-#  echo "Elasticsearch rpm not found"
-#  exit
-#fi
+kafkaDir="/opt/kafka"
+dataDirs="/data01/kafka-logs,/data02/kafka-logs,/data03/kafka-logs"
+zookeeperDataDir="$kafkaDir/zk-data"
 
 staging() {
-  dlDir="/private/kamaso/dl/kafka"
-  #mkdir -p  $dlDir 
-  #cd $dlDir && wget http://apache.uib.no/kafka/0.11.0.2/kafka_2.11-0.11.0.2.tgz
-  # http://apache.uib.no/kafka/0.10.2.1/kafka_2.11-0.10.2.1.tgz
+  dlDir="/tmp"
 
-  # Just drop everything while testing
-  rm -rf /export/kafka
+  echo "Downloading kafka"
+  if [ -f "$dlDir/kafka_2.11-0.11.0.2.tgz" ] ; then
+    echo "Kafka is downloaded already"
+  else
+    cd $dlDir && wget http://apache.uib.no/kafka/0.11.0.2/kafka_2.11-0.11.0.2.tgz 
+    # http://apache.uib.no/kafka/0.10.2.1/kafka_2.11-0.10.2.1.tgz
+  fi
 
-  mkdir -p $dataDir/kafka-logs
-  
-  cd $dataDir
-  tar zxf $dlDir/kafka_2.11-0.11.0.2.tgz
-  ln -s kafka_2.11-0.11.0.2 current
-  chown -R kafka:hadoop $dataDir
+
+  # Just drop everything in Kafka dir while testing
+  if [ -d $kafkaDir ] ; then
+    rm -rf $kafkaDir
+  fi
+  mkdir -p $kafkaDir
+
+  # Just drop everything in data dirs while testing
+  if [ -d $(echo $dataDirs | sed 's/,/ /g' | cut -d \  -f 1) ] ; then
+    rm -rf  $(echo $dataDirs | sed 's/,/ /g')
+  fi
+  mkdir -p $(echo $dataDirs | sed 's/,/ /g')
+
+  if [ -d $kafkaDir ] ; then
+    echo "Unpack Kafka to $kafkaDir"
+    cd $kafkaDir
+    tar zxf $dlDir/kafka_2.11-0.11.0.2.tgz
+    ln -s kafka_2.11-0.11.0.2 current
+  fi
+
+  echo "Add users kafka and zookeeper"
+  sudo adduser --system --user-group --no-create-home kafka
+  sudo adduser --system --user-group --no-create-home zookeeper
+  chown -R kafka:kafka $kafkaDir $(echo $dataDirs | sed 's/,/ /g')
 }
 
 
@@ -42,13 +58,13 @@ kbNode() {
   # Get broker id from hostname
   ID=$(hostname -s |  tr -dc '0-9' | tail -c 1)
 
-  cat > $dataDir/current/config/server.properties <<EOF
+  cat > $kafkaDir/current/config/server.properties <<EOF
 
 broker.id=$ID
 
 listeners=PLAINTEXT://$HOSTNAME:9092
 
-log.dirs=$dataDir/kafka-logs
+log.dirs=$dataDirs
 
 num.partitions=8
 log.retention.bytes=100111000111
@@ -65,11 +81,10 @@ EOF
 zkNode() {
   # Get zookeeper myid from last digit in hostname
   myId=$(hostname|  tr -dc '0-9' | tail -c 1)
-  zookeeperDataDir=$dataDir/zookeeper
   mkdir -p $zookeeperDataDir
-  chown -R zookeeper:hadoop $zookeeperDataDir
+  chown -R zookeeper:zookeeper $zookeeperDataDir
   echo $myId > $zookeeperDataDir/myid
-  cat > $dataDir/current/config/zookeeper.properties <<EOF
+  cat > $kafkaDir/current/config/zookeeper.properties <<EOF
 dataDir=$zookeeperDataDir
 clientPort=2181
 tickTime=2000
@@ -85,8 +100,8 @@ makeNodeSettings() {
   case $(hostname) in
    $zk1|$zk2|$zk3) 
             staging
-            zkNode
-            kbNode
+            #zkNode
+            #kbNode
             ;;
    *) 
             staging

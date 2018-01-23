@@ -1,5 +1,5 @@
 #!/bin/sh
 echo "Stop zookeeper. Wait 5 seconds. Then stop Kafka."
-pdsh -w st-lcsi[01-03] sh /private/kamaso/dl/kafka/zookeeper.sh stop
+pdsh -w ai-linapp[1093-1095] sh  /home/centos/safe/kafka/zookeeper.sh stop
 sleep 2
-pdsh -w st-lcsi[01-04] sh /private/kamaso/dl/kafka/kafka.sh stop
+pdsh -w ai-linapp[1093-1095] sh /home/centos/safe/kafka/kafka.sh stop
