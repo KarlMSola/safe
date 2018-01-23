@@ -1,0 +1,84 @@
+#! /bin/bash
+
+### BEGIN INIT INFO
+# Provides:  zookeeper
+# Required-Start:
+# Required-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: zookeeper service
+### END INIT INFO
+
+ZNAME="zookeeper"
+ZUSER="zookeeper"
+
+ZCMD="/opt/kafka/current/bin/zookeeper-server-start.sh /opt/kafka/current/config/zookeeper.properties"
+ZPIDFILE="/var/run/$ZNAME.pid"
+ZLOGFILE="/var/log/$ZNAME.log"
+
+recursiveKill() { # Recursively kill a process and all subprocesses
+  CPIDS=$(pgrep -P $1);
+  for PID in $CPIDS
+  do
+    recursiveKill $PID
+  done
+  sleep 3 && kill -9 $1 2>/dev/null & # hard kill after 3 seconds
+  kill $1 2>/dev/null # try soft kill first
+}
+
+function zstart {
+  echo "Starting $ZNAME ..."
+  if [ -f "$ZPIDFILE" ]; then
+    echo "Already running according to $ZPIDFILE"
+  else
+    /bin/su "$ZUSER" -m -c "$ZCMD" > $ZLOGFILE 2>&1 &
+    PID=$!
+    echo $PID > $ZPIDFILE
+    echo "Started $ZNAME with pid $PID - Logging to $ZLOGFILE"
+  fi
+}
+
+function zstop {
+  echo "Stopping $ZNAME ..."
+  if [ ! -f $ZPIDFILE ]; then
+    echo "Already stopped!"
+  else
+    PID=`cat $ZPIDFILE`
+    recursiveKill $PID
+    rm -f $ZPIDFILE
+    echo "Stopped $ZNAME"
+  fi
+}
+
+function zstatus {
+  if [ -f "$ZPIDFILE" ]; then
+    PID=`cat $ZPIDFILE`
+    if [ "$(/bin/ps --no-headers -p $PID)" ]; then
+      echo "$ZNAME is running (pid : $PID)"
+    else
+      echo "Pid $PID found in $ZPIDFILE, but not running."
+    fi
+  else
+    echo "$ZNAME is NOT running"
+  fi
+}
+
+case "$1" in
+  start)
+    zstart
+    ;;
+  stop)
+    zstop
+    ;;
+  restart)
+    $0 stop
+    sleep 3
+    $0 start
+    ;;
+  status)
+    zstatus
+    ;;
+  *)
+    echo "Usage: /etc/init.d/zookeeper {start|stop|restart|status}" && exit 1
+    ;;
+esac
