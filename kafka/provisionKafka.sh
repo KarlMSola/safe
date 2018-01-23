@@ -63,7 +63,15 @@ staging() {
   fi
 }
 
-
+firewall() {
+  echo "Rough adding of firewall rules for zk and kafka"
+  firewall-cmd --zone=public --add-port=2181/tcp --permanent
+  firewall-cmd --zone=public --add-port=2888/tcp --permanent
+  firewall-cmd --zone=public --add-port=3888/tcp --permanent
+  firewall-cmd --zone=public --add-port=9092/tcp --permanent
+  firewall-cmd --zone=public --add-port=9093/tcp --permanent
+  firewall-cmd --reload
+}
 
 kbNode() {
   # Get broker id from hostname
@@ -83,7 +91,7 @@ offsets.topic.replication.factor=3
 transaction.state.log.replication.factor=3
 transaction.state.log.min.isr=3
 num.recovery.threads.per.data.dir=2
-log.retention.hours=72
+log.retention.hours=48
 zookeeper.connect=$zk1:2181,$zk3:2181,$zk2:2181,
 group.initial.rebalance.delay.ms=3
 EOF
@@ -113,8 +121,9 @@ makeNodeSettings() {
   case $(hostname -f) in
    $zk1|$zk2|$zk3) 
             #staging
-            zkNode
-            #kbNode
+            #firewall
+            #zkNode
+            kbNode
             ;;
    *) 
             staging
