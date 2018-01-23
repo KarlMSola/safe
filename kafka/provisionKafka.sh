@@ -90,11 +90,13 @@ EOF
 }
 
 zkNode() {
+  echo "Setting up for zookeeper"
   # Get zookeeper myid from last digit in hostname
   myId=$(hostname|  tr -dc '0-9' | tail -c 1)
   mkdir -p $zookeeperDataDir
   chown -R zookeeper:zookeeper $zookeeperDataDir
   echo $myId > $zookeeperDataDir/myid
+  echo "zk myid: $myId"
   cat > $kafkaDir/current/config/zookeeper.properties <<EOF
 dataDir=$zookeeperDataDir
 clientPort=2181
@@ -108,10 +110,10 @@ EOF
 }
 
 makeNodeSettings() {
-  case $(hostname) in
+  case $(hostname -f) in
    $zk1|$zk2|$zk3) 
-            staging
-            #zkNode
+            #staging
+            zkNode
             #kbNode
             ;;
    *) 
