@@ -103,9 +103,9 @@ clientPort=2181
 tickTime=2000
 initLimit=5
 syncLimit=2
-server.1=$zk1:2888:3888
-server.2=$zk2:2888:3888
-server.3=$zk3:2888:3888
+server.$(echo $zk1 | tr -dc '0-9' | tail -c 1)=$zk1:2888:3888
+server.$(echo $zk2 | tr -dc '0-9' | tail -c 1)=$zk2:2888:3888
+server.$(echo $zk3 | tr -dc '0-9' | tail -c 1)=$zk3:2888:3888
 EOF
 }
 
