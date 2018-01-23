@@ -50,6 +50,17 @@ staging() {
   sudo adduser --system --user-group --no-create-home kafka
   sudo adduser --system --user-group --no-create-home zookeeper
   chown -R kafka:kafka $kafkaDir $(echo $dataDirs | sed 's/,/ /g')
+
+  if [ ! -f /etc/init.d/zookeeper.sh ] ; then
+    echo "Copy startup scripts to /etc/init.d"
+    cp /home/centos/safe/kafka/zookeeper.sh /etc/init.d
+    chkconfig --add zookeeper.sh
+  fi
+
+  if [ ! -f /etc/init.d/kafka.sh ] ; then
+    cp /home/centos/safe/kafka/kafka.sh /etc/init.d
+    chkconfig --add kafka.sh
+  fi
 }
 
 

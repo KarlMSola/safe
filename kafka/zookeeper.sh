@@ -12,7 +12,7 @@
 ZNAME="zookeeper"
 ZUSER="zookeeper"
 
-ZCMD="/export/kafka/current/bin/zookeeper-server-start.sh /export/kafka/current/config/zookeeper.properties"
+ZCMD="/opt/kafka/current/bin/zookeeper-server-start.sh /opt/kafka/current/config/zookeeper.properties"
 ZPIDFILE="/var/run/$ZNAME.pid"
 ZLOGFILE="/var/log/$ZNAME.log"
 
@@ -79,6 +79,6 @@ case "$1" in
     zstatus
     ;;
   *)
-    echo "Usage: /etc/init.d/zookeeper {start|stop|restart|status}" && exit 1
+    echo "Usage: /etc/init.d/zookeeper.sh {start|stop|restart|status}" && exit 1
     ;;
 esac
