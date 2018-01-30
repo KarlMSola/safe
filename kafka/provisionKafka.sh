@@ -12,8 +12,10 @@ kb1=$zk1
 kb2=$zk2
 kb3=$zk3
 kafkaDir="/opt/kafka"
-dataDirs="/data01/kafka-logs,/data02/kafka-logs,/data03/kafka-logs"
+dataDirs="/data01/kafka-logs,/data02/kafka-logs,/data03/kafka-logs" # These are the directly attached storage devices
 zookeeperDataDir="$kafkaDir/zk-data"
+keyStoreDir="/etc/Keystore"  # Remember to run ./cert.sh to populate the CA/keystore/truststore
+scriptDir=$(dirname $0)
 
 staging() {
   dlDir="/tmp"
@@ -29,6 +31,8 @@ staging() {
 
   # Just drop everything in Kafka dir while testing
   if [ -d $kafkaDir ] ; then
+    service kafka stop
+    service zookeeper stop
     rm -rf $kafkaDir
   fi
   mkdir -p $kafkaDir
@@ -52,24 +56,26 @@ staging() {
   chown -R kafka:kafka $kafkaDir $(echo $dataDirs | sed 's/,/ /g')
 
   if [ ! -f /etc/init.d/zookeeper ] ; then
-    echo "Copy startup scripts to /etc/init.d"
-    cp /home/centos/safe/kafka/zookeeper /etc/init.d
+    echo "Copy startup scripts from $scriptDir to /etc/init.d"
+    cp $scriptDir/zookeeper /etc/init.d
     chkconfig --add zookeeper
   fi
 
   if [ ! -f /etc/init.d/kafka ] ; then
-    cp /home/centos/safe/kafka/kafka /etc/init.d
+    cp $scriptDir/kafka /etc/init.d
     chkconfig --add kafka
   fi
 }
 
 firewall() {
   echo "Rough adding of firewall rules for zk and kafka"
-  firewall-cmd --zone=public --add-port=2181/tcp --permanent
-  firewall-cmd --zone=public --add-port=2888/tcp --permanent
-  firewall-cmd --zone=public --add-port=3888/tcp --permanent
-  firewall-cmd --zone=public --add-port=9092/tcp --permanent
-  firewall-cmd --zone=public --add-port=9093/tcp --permanent
+  firewall-cmd --zone=public --add-port=2181/tcp --permanent   # Zookeeper public
+  firewall-cmd --zone=public --add-port=2888/tcp --permanent   # Zookeeper internal
+  firewall-cmd --zone=public --add-port=3888/tcp --permanent   # Zookeeper internal
+  firewall-cmd --zone=public --add-port=9092/tcp --permanent   # Kafka plaintext
+  firewall-cmd --zone=public --add-port=9093/tcp --permanent   # Kafka ssl
+  firewall-cmd --zone=public --add-port=9999/tcp --permanent   # Kafka jmx
+  firewall-cmd --zone=public --add-port=10000/tcp --permanent  # Kafka rmi
   firewall-cmd --reload
 }
 
@@ -81,19 +87,27 @@ kbNode() {
 
 broker.id=$ID
 
-listeners=PLAINTEXT://$HOSTNAME:9092
+listeners=PLAINTEXT://$(hostname -f):9092;SSL://$(hostname -f):9093
 
 log.dirs=$dataDirs
 
 num.partitions=8
+default.replication.factor=2
 log.retention.bytes=100111000111
-offsets.topic.replication.factor=3
-transaction.state.log.replication.factor=3
+#offsets.topic.replication.factor=3
+#transaction.state.log.replication.factor=3
 transaction.state.log.min.isr=3
 num.recovery.threads.per.data.dir=2
 log.retention.hours=48
 zookeeper.connect=$zk1:2181,$zk3:2181,$zk2:2181,
 group.initial.rebalance.delay.ms=3
+
+ssl.keystore.location=$keyStoreDir/${i}.keystore.jks
+ssl.keystore.password=$(cat $keyStoreDir/${i}_keystore_creds)
+ssl.truststore.location=$keystoreDir/${i}.truststore.jks
+ssl.truststore.password=$(cat $keyStoreDir/${i}_truststore_creds)
+ssl.key.password=$(cat $keyStoreDir/${i}_sslkey_creds)
+#ssl.client.auth=required
 EOF
 }
 
@@ -119,14 +133,15 @@ EOF
 
 makeNodeSettings() {
   case $(hostname -f) in
-   $zk1|$zk2|$zk3) 
-            #staging
+   $zk1|$zk2|$zk3)  # Zookeeper and Kafka Brokers on these servers
+            staging
             #firewall
-            #zkNode
+            zkNode
             kbNode
             ;;
-   *) 
+   *) # any additional servers are Kafka Brokers only
             staging
+            #firewall
             kbNode
             ;;
   esac
