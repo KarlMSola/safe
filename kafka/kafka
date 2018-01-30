@@ -35,15 +35,21 @@ function kstart {
   ulimit -n 65536
   ulimit -s 10240
   ulimit -c unlimited
-  if [ -f "$KPIDFILE" -a "$(/bin/ps --no-headers -p `cat $KPIDFILE`)" ]; then
-    echo "$KNAME is already running.)"
-    exit 1
-  else
+  if [ -f "$KPIDFILE" ]; then
+    echo "$KPIDFILE exisit"
+    if [ "$(/bin/ps --no-headers -p `cat $KPIDFILE`)" ]; then
+      echo "$KNAME is already running."
+      exit 1
+    else
+      echo "$KNAME is not running."
+    fi
+  fi
+  #else
     /bin/su "$KUSER" -m -c "$KCMD" > $KLOGFILE 2>&1 &
     PID=$!
     echo $PID > $KPIDFILE
     echo "Started $KNAME with pid $PID - Logging to $KLOGFILE"
-  fi
+  #fi
 }
 
 function kstop {
