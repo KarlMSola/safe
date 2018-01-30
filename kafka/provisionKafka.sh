@@ -12,7 +12,7 @@ kb1=$zk1
 kb2=$zk2
 kb3=$zk3
 kafkaDir="/opt/kafka"
-dataDirs="/data/disk01/kafka-logs" # These are the directly attached storage devices
+dataDirs="/data/disk01/kafka-logs" # These are the directly attached storage devices space separated, ending in kafka-logs
 zookeeperDataDir="$kafkaDir/zk-data"
 keyStoreDir="/etc/Keystore"  # Remember to run ./cert.sh to populate the CA/keystore/truststore
 scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -87,7 +87,7 @@ kbNode() {
 
 broker.id=$ID
 
-listeners=PLAINTEXT://$(hostname -f):9092;SSL://$(hostname -f):9093
+listeners=PLAINTEXT://$(hostname -f):9092,SSL://$(hostname -f):9093
 
 log.dirs=$dataDirs
 
@@ -99,12 +99,12 @@ log.retention.bytes=100111000111
 transaction.state.log.min.isr=3
 num.recovery.threads.per.data.dir=2
 log.retention.hours=48
-zookeeper.connect=$zk1:2181,$zk3:2181,$zk2:2181,
+zookeeper.connect=$zk1:2181,$zk3:2181,$zk2:2181
 group.initial.rebalance.delay.ms=3
 
 ssl.keystore.location=$keyStoreDir/$(hostname -f).keystore.jks
 ssl.keystore.password=$(cat $keyStoreDir/$(hostname -f)_keystore_creds)
-ssl.truststore.location=$keystoreDir/$(hostname -f).truststore.jks
+ssl.truststore.location=$keyStoreDir/$(hostname -f).truststore.jks
 ssl.truststore.password=$(cat $keyStoreDir/$(hostname -f)_truststore_creds)
 ssl.key.password=$(cat $keyStoreDir/$(hostname -f)_sslkey_creds)
 #ssl.client.auth=required
