@@ -22,7 +22,7 @@ openssl genrsa -des3 -passout "pass:$KEYPASS" -out kafkacat.client.key 1024
 openssl req -passin "pass:$KEYPASS" -passout "pass:$KEYPASS" -key kafkacat.client.key -new -out kafkacat.client.req -subj '/CN=kafkacat.statoil.no/OU=pki/O=Statoil/L=Stavanger/S=Rogaland/C=NO'
 openssl x509 -req -CA myca.crt -CAkey myca.key -in kafkacat.client.req -out kafkacat-signed.pem -days 3650 -CAcreateserial -passin "pass:$CAPASS"
 
-BROKERS="ai-linapp1093.statoil.no ai-linapp1094.statoil.no ai-linapp1095.statoil.no" # Edit this list to match your servers
+BROKERS="st-linapp1029.st.statoil.no st-linapp1030.st.statoil.no st-linapp1031.st.statoil.no" # Edit this list to match your servers
 for i in $BROKERS
 do
   # Generate passwords

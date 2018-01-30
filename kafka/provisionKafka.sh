@@ -1,21 +1,21 @@
-#!/bin/sh
+#!/bin/sh -x
 #
 # 2018.01.23 kamaso: v.2
 # Call this script to set up kafka node on a Centos7 box
 #
 
 # The three forst nodes are both zookeeper and Kafka broker nodes
-zk1=ai-linapp1093.statoil.no
-zk2=ai-linapp1094.statoil.no
-zk3=ai-linapp1095.statoil.no
+zk1=st-linapp1029.st.statoil.no
+zk2=st-linapp1030.st.statoil.no
+zk3=st-linapp1031.st.statoil.no
 kb1=$zk1
 kb2=$zk2
 kb3=$zk3
 kafkaDir="/opt/kafka"
-dataDirs="/data01/kafka-logs,/data02/kafka-logs,/data03/kafka-logs" # These are the directly attached storage devices
+dataDirs="/data/disk01/kafka-logs" # These are the directly attached storage devices
 zookeeperDataDir="$kafkaDir/zk-data"
 keyStoreDir="/etc/Keystore"  # Remember to run ./cert.sh to populate the CA/keystore/truststore
-scriptDir=$(dirname $0)
+scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 staging() {
   dlDir="/tmp"
@@ -102,11 +102,11 @@ log.retention.hours=48
 zookeeper.connect=$zk1:2181,$zk3:2181,$zk2:2181,
 group.initial.rebalance.delay.ms=3
 
-ssl.keystore.location=$keyStoreDir/${i}.keystore.jks
-ssl.keystore.password=$(cat $keyStoreDir/${i}_keystore_creds)
-ssl.truststore.location=$keystoreDir/${i}.truststore.jks
-ssl.truststore.password=$(cat $keyStoreDir/${i}_truststore_creds)
-ssl.key.password=$(cat $keyStoreDir/${i}_sslkey_creds)
+ssl.keystore.location=$keyStoreDir/$(hostname -f).keystore.jks
+ssl.keystore.password=$(cat $keyStoreDir/$(hostname -f)_keystore_creds)
+ssl.truststore.location=$keystoreDir/$(hostname -f).truststore.jks
+ssl.truststore.password=$(cat $keyStoreDir/$(hostname -f)_truststore_creds)
+ssl.key.password=$(cat $keyStoreDir/$(hostname -f)_sslkey_creds)
 #ssl.client.auth=required
 EOF
 }
