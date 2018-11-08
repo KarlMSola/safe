@@ -2,8 +2,10 @@
 #
 # Quick script to deploy a set of servers with datadisk
 #
+
 RESOURCEGROUP="kafkalab.karl.dev"
 CORPORATE_NET="<ExternalIP>"
+SSHKEY="<Your SSH public key>"
 az account set --subscription "<Name of Subscription>"
 
 do_help() {
