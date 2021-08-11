@@ -39,10 +39,10 @@ If everything went well there should now be a lot of data in Elasticsearch ready
 
 ### Next steps
 - Log on to the local Kibana instance http://localhost:5601, username `elastic` and password `changeme`.
-- Create index pattern http://localhost:5601/app/management/kibana/indexPatterns using TimeGenerated as time field
-- Go to Kibana to explore the data http://localhost:5601/app/discover
-- Remember to set at relevant time period. E.g. last 30 hours is
-   http://localhost:5601/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-30h,to:now))
+- Create index pattern http://localhost:5601/app/management/kibana/indexPatterns using TimeGenerated as time field from the `configdata-2021` index. Go back to read the output of the above command if the index name is not there
+- Go to Kibana to explore the new index pattern you created above, http://localhost:5601/app/discover
+- Remember to set at relevant time period. E.g. last 24 hours is
+   http://localhost:5601/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-24h,to:now))
 
 ### Cleanup
 Stop the docker containers and remove the data volume from local computer
