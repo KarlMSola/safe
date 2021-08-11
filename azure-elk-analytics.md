@@ -4,8 +4,8 @@ The context of this tip is a need for exploring a dataset from Azure Monitor. Ki
 for exploring a previously unknown set of data.
 
 
-For the following commands the assumtion is that you have a a Linux or OSX environment on your personal computer. 
-A howto on the software requirements are out of scope for this document: docker, docker-compose, az cli, jq, git
+For the following commands the assumtion is that you have a Linux or OSX environment on your computer. 
+A howto on the software requirements is out of scope for this document: docker, docker-compose, az cli, jq, git
 
 ### Deploy the Elastic stack
 Start a stack of Elastic analytics tools using docker and deviantony's project as a starting point. This will download and initialize a full Elastic stack 
