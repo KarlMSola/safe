@@ -28,7 +28,7 @@ workSpace=fa99b26f-2a91-416e-ae59-52112dc57a1b
 az monitor log-analytics query -w $workSpace --analytics-query 'ConfigurationData' -t PT24H | jq -c '.[]' | gzip > 24h-data.json.gz
 ```
 
-# Index the dataset
+### Index the dataset
 Spool the gz compressed file into Elasticsearch, again piping it through jq for extra formatting. 
 Note also that we call for creating an index called `configdata-2021`. See links below for more details
 ```bash
@@ -37,12 +37,19 @@ gzcat 24h-data.json.gz| jq -c '.  | {"index": {"_index": "configdata-2021", "_ty
 If everything went well there should now be a lot of data in Elasticsearch ready for you to visualize and analyze using Kibana. 
 
 
-##Next steps
+### Next steps
 - Log on to the local Kibana instance http://localhost:5601, username `elastic` and password `changeme`.
 - Create index pattern http://localhost:5601/app/management/kibana/indexPatterns using TimeGenerated as time field
 - Go to Kibana to explore the data http://localhost:5601/app/discover
 - Remember to set at relevant time period. E.g. last 30 hours is
    http://localhost:5601/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-30h,to:now))
+
+### Cleanup
+Stop the docker containers and remove the data volume from local computer
+```bash
+docker-compose down
+docker volume rm docker-elk_elasticsearch
+```
 
 ### Links
 - Elasticsearch [documentation site](https://www.elastic.co/guide/index.html)
